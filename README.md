@@ -67,6 +67,6 @@ $$
 \cdot 32
 $$
 
-Using C code: `(bitsPerPixel * imageWidth + 31) & ~31`
+Using the C code `(bitsPerPixel * imageWidth + 31) & ~31`, we can round up to the nearest 32 bits.
 
-An `~31` int is equal to `...100000`. An and operation causes the last 5 bits to be removed, effectively rounding down to the nearest multiple of 32 or floor dividing by 32.
+An `~31` int is equal to `...100000`. An and operation causes the last 5 bits to be removed, effectively rounding down to the nearest multiple of 32.
