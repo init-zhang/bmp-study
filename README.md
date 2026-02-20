@@ -43,3 +43,30 @@ Assuming `BITMAPINFOHEADER` header format
 |50|4|number of important colors  |
 +--+-+----------------------------+
 ```
+
+## Notes
+
+Header fields use the `WORD` and `DWORD` data types from Windows. A word is 16 bits, whilst dword is 32 bits, making them representable as 4 and 8 hex digits respectively.
+
+Within `xxd`, this means every column is a word long, whilst 2 columns represent a dword.
+
+Integer values are all stored in little-endian format.
+
+Rows are padded up to a multiple of 4 bytes. Thus the formula for bits per row is:
+
+```
+(bitsPerPixel * imageWidth + 31) / 32 * 32
+```
+
+Or
+
+$$
+\left\lfloor
+  \frac{\text{bits per pixel} \cdot \text{image width} + 31}{32}
+\right\rfloor
+\cdot 32
+$$
+
+Using C code: `(bitsPerPixel * imageWidth + 31) & ~31`
+
+An `~31` int is equal to `...100000`. An and operation causes the last 5 bits to be removed, effectively rounding down to the nearest multiple of 32 or floor dividing by 32.
