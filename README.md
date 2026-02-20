@@ -70,3 +70,5 @@ $$
 Using the C code `(bitsPerPixel * imageWidth + 31) & ~31`, we can round up to the nearest 32 bits.
 
 An `~31` int is equal to `...100000`. An and operation causes the last 5 bits to be removed, effectively rounding down to the nearest multiple of 32.
+
+Bitmap file header is 14 bytes, long. Use `xxd -l 14 demo.bmp`. The offset or starting of address of the pixel array is the last 4 bytes (2 columns).
