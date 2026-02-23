@@ -23,14 +23,14 @@ int main(int argc, char* argv[]) {
     fread(buffer, sizeof(buffer), 1, ptr);
 
     for (int i = 0; i < bufferSize / columns; i++) {
-        for (int j = 0; j < columns; j++)
-            printf("%02X ", buffer[i*columns+j]);
+        for (int j = 0; j < columns; j += 2)
+            printf("%02X%02X ", buffer[j+i], buffer[j+i+1]);
         printf("\n");
     }
     int roundedDown = bufferSize & ~(columns-1);
     if (bufferSize != roundedDown) {
-        for (int i = 0; i < bufferSize % columns; i++)
-            printf("%02X ", buffer[roundedDown + i]);
+        for (int i = 0; i < bufferSize % columns; i += 2)
+            printf("%02X%02X ", buffer[roundedDown+i], buffer[roundedDown+i+1]);
         printf("\n");
     }
 
