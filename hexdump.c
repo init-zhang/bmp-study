@@ -1,4 +1,5 @@
-/* Hexdumps a file, a byte  at a time
+/**
+ * Hexdumps a file, a byte at a time
  * Display the line number in decimal
  *
  * Only argument is number of bytes to read from file
@@ -11,13 +12,28 @@
 // Can be changed to hexadecimal by replacing d with x
 #define lineNumberFormat "%02d: "
 
+/**
+ * Prints a row of bytes from a file of length bufferSize
+ *
+ * @param ptr         file pointer to read from
+ * @param buffer      buffer to write file row into
+ * @param bufferSize  size of buffer, avoids sizeof call for each row
+ */
+void printRow(FILE *ptr, int *buffer, int bufferSize) {
+    fread(buffer, bufferSize, 1, ptr)
+}
+
 int main(int argc, char* argv[]) {
     int bufferSize;
+    int startAddress;
+    int endAddress;
+
     if (argc == 2 ) {
         bufferSize = atoi(argv[1]);
     } else {
         bufferSize = columns;
     }
+
     unsigned char buffer[bufferSize];
     FILE *ptr;
 
