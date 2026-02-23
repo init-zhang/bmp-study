@@ -9,7 +9,7 @@
 
 #define columns 16
 // Can be changed to hexadecimal by replacing d with x
-#define lineNumberFormat "%03d: "
+#define lineNumberFormat "%02d: "
 
 int main(int argc, char* argv[]) {
     int bufferSize;
