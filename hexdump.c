@@ -11,31 +11,43 @@
 #define columns 16
 // Can be changed to hexadecimal by replacing d with x
 #define lineNumberFormat "%02d: "
-#define bufferSize 16
+#define bufferSize 32
 
 /**
  * Prints a row of bytes from a file of length bufferSize
  *
  * @param ptr         file pointer to read from
  * @param buffer      buffer to write file row into
- * @param lineNumber  the address of the first byte for this line, used
- *                    for line numbers
+ * @param lineNumber  the address of the first byte for this line,
+ *                    must be a factor of `columns`
  * @param start       the address of the first byte to display
  * @param length      number of bytes to display
  */
 void printRow(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int length) {
     int address;
     fread(buffer, bufferSize, 1, ptr);
-    printf(lineNumberFormat, lineNumber);
     for (int i = 0; i < bufferSize; i++) {
         address = lineNumber + i;
+
+        // At the start of row
+        if (i % columns == 0) {
+            if (address >= start+length) {
+                return;
+            } else {
+                printf(lineNumberFormat, address);
+            }
+        }
+
         if (address >= start && address < start+length) {
             printf("%02X ", buffer[i]);
         } else {
             printf("-- ");
         }
+
+        // At the end of row
+        if ((i + 1) % columns == 0)
+            printf("\n");
     }
-    printf("\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -57,9 +69,9 @@ int main(int argc, char* argv[]) {
 
     ptr = fopen("demo.bmp","rb");
 
-    int roundedUp = (length + (columns-1)) & ~(columns-1);
+    int roundedUp = (length + (bufferSize-1)) & ~(bufferSize-1);
 
-    for (int i = 0; i < roundedUp; i += columns)
+    for (int i = 0; i < roundedUp; i += bufferSize)
         printRow(ptr, buffer, i, startAddress, length);
 
     return 0;
