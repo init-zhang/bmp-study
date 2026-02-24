@@ -16,7 +16,7 @@
 /**
  * Prints a row of bytes from a file of length bufferSize
  *
- * @param ptr         file pointer to read from
+ * @param ptr         file descriptor to read from
  * @param buffer      buffer to write file row into
  * @param lineNumber  the address of the first byte for this line,
  *                    must be a factor of `columns`
@@ -69,9 +69,13 @@ int main(int argc, char* argv[]) {
 
     ptr = fopen("demo.bmp","rb");
 
-    int roundedUp = (length + (bufferSize-1)) & ~(bufferSize-1);
+    int startIndex = startAddress & ~(bufferSize-1);
+    int endIndex = (startIndex + length + (bufferSize-1)) & ~(bufferSize-1);
 
-    for (int i = 0; i < roundedUp; i += bufferSize)
+    printf("%d to %d\n", startIndex, endIndex);
+
+    fseek(ptr, startIndex, SEEK_SET);
+    for (int i = startIndex; i < endIndex; i += bufferSize)
         printRow(ptr, buffer, i, startAddress, length);
 
     return 0;
