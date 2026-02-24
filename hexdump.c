@@ -33,6 +33,9 @@ void printRow(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int l
         if (i % columns == 0) {
             if (address >= start+length) {
                 return;
+            } else if (address + columns - 1 < start) {
+                i += columns - 1;
+                continue;
             } else {
                 printf(lineNumberFormat, address);
             }
