@@ -18,24 +18,38 @@
  *
  * @param ptr         file pointer to read from
  * @param buffer      buffer to write file row into
- * @param lineNumber  the address of the first byte, used for line numbers
+ * @param lineNumber  the address of the first byte for this line, used
+ *                    for line numbers
+ * @param start       the address of the first byte to display
+ * @param length      number of bytes to display
  */
-void printRow(FILE *ptr, unsigned char *buffer, int lineNumber) {
+void printRow(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int length) {
+    int address;
     fread(buffer, bufferSize, 1, ptr);
     printf(lineNumberFormat, lineNumber);
-    for (int i = 0; i < bufferSize; i++)
-        printf("%02X ", buffer[i]);
+    for (int i = 0; i < bufferSize; i++) {
+        address = lineNumber + i;
+        if (address >= start && address < start+length) {
+            printf("%02X ", buffer[i]);
+        } else {
+            printf("-- ");
+        }
+    }
     printf("\n");
 }
 
 int main(int argc, char* argv[]) {
-    int startAddress;
-    int length;
+    int startAddress = 0;
+    int length = 16;
 
-    if (argc == 2 ) {
-        length = atoi(argv[1]);
-    } else {
-        length = 16;
+    switch (argc) {
+        case 3:
+            startAddress = atoi(argv[1]);
+            length = atoi(argv[2]);
+            break;
+        case 2:
+            length = atoi(argv[1]);
+            break;
     }
 
     unsigned char buffer[bufferSize];
@@ -46,7 +60,7 @@ int main(int argc, char* argv[]) {
     int roundedUp = (length + (columns-1)) & ~(columns-1);
 
     for (int i = 0; i < roundedUp; i += columns)
-        printRow(ptr, buffer, i);
+        printRow(ptr, buffer, i, startAddress, length);
 
     return 0;
 }
