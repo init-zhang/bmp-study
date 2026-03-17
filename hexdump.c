@@ -2,7 +2,7 @@
  * Hexdumps a file, a byte at a time
  * Display the line number in decimal
  *
- * Only argument is number of bytes to read from file
+ * UPDATE: Only argument is number of bytes to read from file
  */
 
 #include <stdio.h>
@@ -14,26 +14,27 @@
 #define bufferSize 32
 
 /**
- * Prints a row of bytes from a file of length bufferSize
+ * Prints a chunk of bytes from a file of length bufferSize
  *
- * @param ptr         file descriptor to read from
- * @param buffer      buffer to write file row into
- * @param lineNumber  the address of the first byte for this line,
- *                    must be a factor of `columns`
- * @param start       the address of the first byte to display
- * @param length      number of bytes to display
+ * @param ptr           file descriptor to read from
+ * @param buffer        buffer to write file chunk into
+ * @param chunkAddress  the address of the first byte for this chunk,
+ *                      must be a factor of `columns`
+ * @param start         the address of the first byte to display
+ * @param end           the address of the last byte to display
  */
-void printRow(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int length) {
+void printChunk(FILE *ptr, unsigned char *buffer, int chunkAddress, int start, int end) {
     int address;
     fread(buffer, bufferSize, 1, ptr);
     for (int i = 0; i < bufferSize; i++) {
-        address = lineNumber + i;
+        address = chunkAddress + i;
 
-        // At the start of row
+        // At the start of a column
         if (i % columns == 0) {
-            if (address >= start+length) {
-                return;
-            } else if (address + columns - 1 < start) {
+            if (address > end)
+                break;
+
+            if (address + columns - 1 < start) {
                 i += columns - 1;
                 continue;
             } else {
@@ -41,15 +42,19 @@ void printRow(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int l
             }
         }
 
-        if (address >= start && address < start+length) {
-            printf("%02X ", buffer[i]);
-        } else {
+        if (address < start || address > end) {
             printf("-- ");
+        } else {
+            printf("%02X ", buffer[i]);
         }
 
-        // At the end of row
-        if ((i + 1) % columns == 0)
+        // At the end of a column
+        if ((i + 1) % columns == 0) {
             printf("\n");
+
+            if (address > end)
+                break;
+        }
     }
 }
 
@@ -73,13 +78,13 @@ int main(int argc, char* argv[]) {
     ptr = fopen("demo.bmp","rb");
 
     int startIndex = startAddress & ~(bufferSize-1);
-    int endIndex = (startIndex + length + (bufferSize-1)) & ~(bufferSize-1);
+    int endIndex = (startAddress + length + (bufferSize-1)) & ~(bufferSize-1);
 
     printf("%d to %d\n", startIndex, endIndex);
 
     fseek(ptr, startIndex, SEEK_SET);
     for (int i = startIndex; i < endIndex; i += bufferSize)
-        printRow(ptr, buffer, i, startAddress, length);
+        printChunk(ptr, buffer, i, startAddress, startAddress + length - 1);
 
     return 0;
 }
