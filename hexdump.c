@@ -31,6 +31,9 @@ void printChunk(FILE *ptr, unsigned char *buffer, int chunkAddress, int start, i
 
         // At the start of a column
         if (i % columns == 0) {
+            if (address > end)
+                break;
+
             if (address + columns - 1 < start) {
                 i += columns - 1;
                 continue;
@@ -39,15 +42,19 @@ void printChunk(FILE *ptr, unsigned char *buffer, int chunkAddress, int start, i
             }
         }
 
-        if (address < start) {
+        if (address < start || address > end) {
             printf("-- ");
         } else {
             printf("%02X ", buffer[i]);
         }
 
         // At the end of a column
-        if ((i + 1) % columns == 0)
+        if ((i + 1) % columns == 0) {
             printf("\n");
+
+            if (address > end)
+                break;
+        }
     }
 }
 
@@ -71,13 +78,13 @@ int main(int argc, char* argv[]) {
     ptr = fopen("demo.bmp","rb");
 
     int startIndex = startAddress & ~(bufferSize-1);
-    int endIndex = (startIndex + length + (bufferSize-1)) & ~(bufferSize-1);
+    int endIndex = (startAddress + length + (bufferSize-1)) & ~(bufferSize-1);
 
     printf("%d to %d\n", startIndex, endIndex);
 
     fseek(ptr, startIndex, SEEK_SET);
     for (int i = startIndex; i < endIndex; i += bufferSize)
-        printChunk(ptr, buffer, i, startAddress, length);
+        printChunk(ptr, buffer, i, startAddress, startAddress + length - 1);
 
     return 0;
 }
