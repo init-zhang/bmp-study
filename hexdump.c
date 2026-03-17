@@ -29,25 +29,14 @@ void printChunk(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int
     for (int i = 0; i < bufferSize; i++) {
         address = lineNumber + i;
 
-        // At the start of row
+        // At the start of a column
         if (i % columns == 0) {
-            if (address >= start+length) {
-                return;
-            } else if (address + columns - 1 < start) {
-                i += columns - 1;
-                continue;
-            } else {
-                printf(lineNumberFormat, address);
-            }
+            printf(lineNumberFormat, address);
         }
 
-        if (address >= start && address < start+length) {
-            printf("%02X ", buffer[i]);
-        } else {
-            printf("-- ");
-        }
+        printf("%02X ", buffer[i]);
 
-        // At the end of row
+        // At the end of a column
         if ((i + 1) % columns == 0)
             printf("\n");
     }
