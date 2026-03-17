@@ -14,16 +14,16 @@
 #define bufferSize 32
 
 /**
- * Prints a row of bytes from a file of length bufferSize
+ * Prints a chunk of bytes from a file of length bufferSize
  *
- * @param ptr         file descriptor to read from
- * @param buffer      buffer to write file row into
- * @param lineNumber  the address of the first byte for this line,
- *                    must be a factor of `columns`
- * @param start       the address of the first byte to display
- * @param length      number of bytes to display
+ * @param ptr          file descriptor to read from
+ * @param buffer       buffer to write file chunk into
+ * @param chunkNumber  the address of the first byte for this chunk,
+ *                     must be a factor of `columns`
+ * @param start        the address of the first byte to display
+ * @param length       number of bytes to display
  */
-void printRow(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int length) {
+void printChunk(FILE *ptr, unsigned char *buffer, int lineNumber, int start, int length) {
     int address;
     fread(buffer, bufferSize, 1, ptr);
     for (int i = 0; i < bufferSize; i++) {
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
     fseek(ptr, startIndex, SEEK_SET);
     for (int i = startIndex; i < endIndex; i += bufferSize)
-        printRow(ptr, buffer, i, startAddress, length);
+        printChunk(ptr, buffer, i, startAddress, length);
 
     return 0;
 }
