@@ -41,6 +41,7 @@ int main(int argc, char* argv[]) {
     }
 
     file = fopen(fileName, "rb");
+
     if (!file) {
         printf("File could not be read.\n");
         return 1;
