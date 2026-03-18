@@ -86,5 +86,7 @@ int main(int argc, char* argv[]) {
     for (int i = startIndex; i < endIndex; i += bufferSize)
         printChunk(ptr, buffer, i, startAddress, startAddress + length - 1);
 
+    fclose(ptr);
+
     return 0;
 }
