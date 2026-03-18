@@ -41,11 +41,16 @@ int main(int argc, char* argv[]) {
     }
 
     file = fopen(fileName, "rb");
+    if (!file) {
+        printf("File could not be read.\n");
+        return 1;
+    }
 
     if (checkFile(file) == 1) {
         fclose(file);
         return 1;
     }
+
     printf("File magic number is of BMP file, reading header.\n");
 
     fileHeader header;
