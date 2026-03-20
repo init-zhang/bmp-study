@@ -14,6 +14,12 @@ typedef struct {
     uint16_t reserved2;
     uint32_t offset;
 } fileHeader;
+
+typedef struct {
+    uint32_t headerSize;
+    int32_t width;
+    int32_t height;
+} dibHeader;
 #pragma pack(pop)
 
 int checkFile(FILE *file) {
@@ -63,6 +69,13 @@ int main(int argc, char* argv[]) {
     printf("Reserved 1: %u\n", header.reserved1);
     printf("Reserved 2: %u\n", header.reserved2);
     printf("Offset: %u\n", header.offset);
+
+    dibHeader dib;
+    fread(&dib, sizeof(dib), 1, file);
+
+    printf("DIB header size: %u\n", dib.headerSize);
+    printf("Image width: %d\n", dib.width);
+    printf("Image height: %d\n", dib.height);
 
     fclose(file);
 
