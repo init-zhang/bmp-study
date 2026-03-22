@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define PIXEL_BUFFER_SIZE = 100
+
 #pragma pack(push, 1)
 typedef struct {
     uint16_t magicNumber;
@@ -33,6 +35,16 @@ int checkFile(FILE *file) {
         return 1;
     } else {
         return 0;
+    }
+}
+
+void readPixels(FILE *file, dibHeader dib) {
+    uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
+    int x = 0;
+    int y = dib.height - 1;
+
+    while (y != 0 && x != dib.width) {
+        fread(&buffer, sizeof(buffer), 1, file);
     }
 }
 
