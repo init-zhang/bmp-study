@@ -61,11 +61,11 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
                 printf("\033[0m\n");
             }
 
-            r = buffer[pixel*3];
+            // Read color values in reverse order due to little-endian.
+            b = buffer[pixel*3];
             g = buffer[pixel*3+1];
-            b = buffer[pixel*3+2];
-            // TrueColor is ordered BGR rather than RGB.
-            printf("\033[48;2;%u;%u;%um  ", b, g, r);
+            r = buffer[pixel*3+2];
+            printf("\033[48;2;%u;%u;%um  ", r, g, b);
 
             x++;
         }
