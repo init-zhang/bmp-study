@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define PIXEL_BUFFER_SIZE 100
+// We can get away with loading the entire image in memory as it only uses
+// 96x96x3 = 27648 bytes. But for larger images, we should read as a stream.
+#define PIXEL_BUFFER_SIZE 9216
 
 #pragma pack(push, 1)
 typedef struct {
@@ -53,20 +55,23 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
 
         for (int pixel = 0; pixel < PIXEL_BUFFER_SIZE; pixel++) {
 
-            if (x < dib.width) {
-                x++;
-            } else {
+            if (x >= dib.width) {
                 x = 0;
                 y++;
-                printf("\n");
+                printf("\033[0m\n");
             }
 
             r = buffer[pixel*3];
             g = buffer[pixel*3+1];
             b = buffer[pixel*3+2];
-            printf("%u,%u,%u ", r, g, b);
+            // TrueColor is ordered BGR rather than RGB.
+            printf("\033[48;2;%u;%u;%um  ", b, g, r);
+
+            x++;
         }
     // }
+
+    printf("\033[0m\n");
 }
 
 int main(int argc, char* argv[]) {
