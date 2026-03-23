@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define PIXEL_BUFFER_SIZE = 100
+#define PIXEL_BUFFER_SIZE 100
 
 #pragma pack(push, 1)
 typedef struct {
@@ -38,14 +38,35 @@ int checkFile(FILE *file) {
     }
 }
 
-void readPixels(FILE *file, dibHeader dib) {
+void readPixels(FILE *file, fileHeader header, dibHeader dib) {
     uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
     int x = 0;
     int y = dib.height - 1;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
 
-    while (y != 0 && x != dib.width) {
+    fseek(file, header.offset, SEEK_SET);
+
+    // while (y != 0 && x != dib.width) {
         fread(&buffer, sizeof(buffer), 1, file);
-    }
+
+        for (int pixel = 0; pixel < PIXEL_BUFFER_SIZE; pixel++) {
+
+            if (x < dib.width) {
+                x++;
+            } else {
+                x = 0;
+                y++;
+                printf("\n");
+            }
+
+            r = buffer[pixel*3];
+            g = buffer[pixel*3+1];
+            b = buffer[pixel*3+2];
+            printf("%u,%u,%u ", r, g, b);
+        }
+    // }
 }
 
 int main(int argc, char* argv[]) {
@@ -88,6 +109,8 @@ int main(int argc, char* argv[]) {
     printf("DIB header size: %u\n", dib.headerSize);
     printf("Image width: %d\n", dib.width);
     printf("Image height: %d\n", dib.height);
+
+    readPixels(file, header, dib);
 
     fclose(file);
 
