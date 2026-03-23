@@ -41,19 +41,24 @@ int checkFile(FILE *file) {
 }
 
 void readPixels(FILE *file, fileHeader header, dibHeader dib) {
-    uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
+    // uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
+    uint8_t buffer[dib.width * 3];
     int x = 0;
     int y = dib.height - 1;
+    int endAddress = dib.width * dib.height + header.offset;
     uint8_t r;
     uint8_t g;
     uint8_t b;
 
-    fseek(file, header.offset, SEEK_SET);
+    printf("Buffer size: %lu\n", sizeof(buffer));
+    printf("End address: %u\n", endAddress);
 
-    // while (y != 0 && x != dib.width) {
+    fseek(file, endAddress - 1, SEEK_SET);
+
+     while (y != 0) {
         fread(&buffer, sizeof(buffer), 1, file);
 
-        for (int pixel = 0; pixel < PIXEL_BUFFER_SIZE; pixel++) {
+        for (int pixel = 0; pixel < dib.width; pixel++) {
 
             if (x >= dib.width) {
                 x = 0;
@@ -69,7 +74,9 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
 
             x++;
         }
-    // }
+
+        fseek(file, -2 * dib.width, SEEK_CUR);
+     }
 
     printf("\033[0m\n");
 }
