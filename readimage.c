@@ -57,7 +57,7 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
 
             if (x >= dib.width) {
                 x = 0;
-                y++;
+                y--;
                 printf("\033[0m\n");
             }
 
