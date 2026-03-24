@@ -23,6 +23,8 @@ typedef struct {
     uint32_t headerSize;
     int32_t width;
     int32_t height;
+    uint16_t colorPlanes;
+    uint16_t bitsPerPixel;
 } dibHeader;
 #pragma pack(pop)
 
@@ -122,6 +124,18 @@ int main(int argc, char* argv[]) {
     printf("DIB header size: %u\n", dib.headerSize);
     printf("Image width: %d\n", dib.width);
     printf("Image height: %d\n", dib.height);
+    printf("Color planes: %d\n", dib.colorPlanes);
+    printf("Bits per pixel: %d\n", dib.bitsPerPixel);
+
+    if (dib.colorPlanes != 1) {
+        printf("Color planes must be 1.");
+        return 1;
+    }
+
+    if (dib.bitsPerPixel != 24) {
+        printf("Only 24 bits per pixel images are supported");
+        return 1;
+    }
 
     readPixels(file, header, dib);
 
