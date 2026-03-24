@@ -128,13 +128,19 @@ int main(int argc, char* argv[]) {
     printf("Bits per pixel: %d\n", dib.bitsPerPixel);
 
     if (dib.colorPlanes != 1) {
-        printf("Color planes must be 1.");
+        printf("Color planes must be 1.\n");
         return 1;
     }
 
     if (dib.bitsPerPixel != 24) {
-        printf("Only 24 bits per pixel images are supported");
-        return 1;
+        char ans;
+
+        printf("Only 24 bits per pixel images are supported.\n");
+        printf("Continue? [y/N]\n");
+        scanf("> %c", &ans);
+
+        if (ans != 'y' && ans != 'Y')
+            return 1;
     }
 
     readPixels(file, header, dib);
