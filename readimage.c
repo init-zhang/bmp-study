@@ -23,6 +23,8 @@ typedef struct {
     uint32_t headerSize;
     int32_t width;
     int32_t height;
+    uint16_t colorPlanes;
+    uint16_t bitsPerPixel;
 } dibHeader;
 #pragma pack(pop)
 
@@ -41,19 +43,25 @@ int checkFile(FILE *file) {
 }
 
 void readPixels(FILE *file, fileHeader header, dibHeader dib) {
-    uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
+    // uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
+    uint8_t buffer[dib.width * 3];
+    long int bufferSize = sizeof(buffer);
     int x = 0;
     int y = dib.height - 1;
+    int endAddress = bufferSize * dib.height + header.offset;
     uint8_t r;
     uint8_t g;
     uint8_t b;
 
-    fseek(file, header.offset, SEEK_SET);
+    printf("Buffer size: %lu\n", bufferSize);
+    printf("End address: %u\n", endAddress);
 
-    // while (y != 0 && x != dib.width) {
-        fread(&buffer, sizeof(buffer), 1, file);
+    fseek(file, endAddress - bufferSize,  SEEK_SET);
 
-        for (int pixel = 0; pixel < PIXEL_BUFFER_SIZE; pixel++) {
+     while (y != 0) {
+        fread(&buffer, bufferSize, 1, file);
+
+        for (int pixel = 0; pixel < dib.width; pixel++) {
 
             if (x >= dib.width) {
                 x = 0;
@@ -61,15 +69,17 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
                 printf("\033[0m\n");
             }
 
-            r = buffer[pixel*3];
+            // Read color values in reverse order due to little-endian.
+            b = buffer[pixel*3];
             g = buffer[pixel*3+1];
-            b = buffer[pixel*3+2];
-            // TrueColor is ordered BGR rather than RGB.
-            printf("\033[48;2;%u;%u;%um  ", b, g, r);
+            r = buffer[pixel*3+2];
+            printf("\033[48;2;%u;%u;%um  ", r, g, b);
 
             x++;
         }
-    // }
+
+        fseek(file, -2 * bufferSize, SEEK_CUR);
+     }
 
     printf("\033[0m\n");
 }
@@ -114,6 +124,24 @@ int main(int argc, char* argv[]) {
     printf("DIB header size: %u\n", dib.headerSize);
     printf("Image width: %d\n", dib.width);
     printf("Image height: %d\n", dib.height);
+    printf("Color planes: %d\n", dib.colorPlanes);
+    printf("Bits per pixel: %d\n", dib.bitsPerPixel);
+
+    if (dib.colorPlanes != 1) {
+        printf("Color planes must be 1.\n");
+        return 1;
+    }
+
+    if (dib.bitsPerPixel != 24) {
+        char ans;
+
+        printf("Only 24 bits per pixel images are supported.\n");
+        printf("Continue? [y/N]\n");
+        scanf("> %c", &ans);
+
+        if (ans != 'y' && ans != 'Y')
+            return 1;
+    }
 
     readPixels(file, header, dib);
 
