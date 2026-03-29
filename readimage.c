@@ -43,7 +43,7 @@ int checkFile(FILE *file) {
 }
 
 void readPixels(FILE *file, fileHeader header, dibHeader dib) {
-    int bytesPerPixel = dib.bitsPerPixel / 8;
+    int bytesPerPixel = dib.bitsPerPixel >> 3;
     int rowWidth = (bytesPerPixel * dib.width + 3) & ~3;
     uint8_t buffer[rowWidth];
     long int bufferSize = sizeof(buffer);
