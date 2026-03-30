@@ -43,9 +43,11 @@ int checkFile(FILE *file) {
 }
 
 void readPixels(FILE *file, fileHeader header, dibHeader dib) {
-    // uint8_t buffer[PIXEL_BUFFER_SIZE * 3];
-    uint8_t buffer[dib.width * 3];
+    int bytesPerPixel = dib.bitsPerPixel >> 3;
+    int rowWidth = (bytesPerPixel * dib.width + 3) & ~3;
+    uint8_t buffer[rowWidth];
     long int bufferSize = sizeof(buffer);
+    int pixelCount = 0;
     int x = 0;
     int y = dib.height - 1;
     int endAddress = bufferSize * dib.height + header.offset;
@@ -53,6 +55,7 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
     uint8_t g;
     uint8_t b;
 
+    printf("========\n");
     printf("Buffer size: %lu\n", bufferSize);
     printf("End address: %u\n", endAddress);
 
@@ -76,12 +79,14 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
             printf("\033[48;2;%u;%u;%um  ", r, g, b);
 
             x++;
+            pixelCount++;
         }
 
         fseek(file, -2 * bufferSize, SEEK_CUR);
      }
 
     printf("\033[0m\n");
+    printf("Pixel count: %d\n", pixelCount);
 }
 
 int main(int argc, char* argv[]) {
@@ -121,6 +126,7 @@ int main(int argc, char* argv[]) {
     dibHeader dib;
     fread(&dib, sizeof(dib), 1, file);
 
+    printf("========\n");
     printf("DIB header size: %u\n", dib.headerSize);
     printf("Image width: %d\n", dib.width);
     printf("Image height: %d\n", dib.height);
