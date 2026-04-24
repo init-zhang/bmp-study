@@ -5,8 +5,9 @@
  * readimage [flags] [file]
  *
  * Flags:
- * -n  Print the RGB value rather than TrueColor pixel.
- * -d  Print denary values of RGB values instead of hex. Assumes `-n`.
+ * -h  Print the RGB value rather than TrueColor pixel.
+ * -d  Print the RGB denary values rather than TrueColor pixel.
+ * -p  Print width padding.
  */
 
 #include <stdio.h>
