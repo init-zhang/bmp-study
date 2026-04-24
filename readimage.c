@@ -15,6 +15,12 @@
 #include <stdbool.h>
 #include <string.h>
 
+typedef struct {
+    bool printHex;
+    bool printDenary;
+    bool includePadding;
+} options;
+
 #pragma pack(push, 1)
 typedef struct {
     uint16_t magicNumber;
@@ -47,7 +53,7 @@ int checkFile(FILE *file) {
     }
 }
 
-void readPixels(FILE *file, fileHeader header, dibHeader dib, bool noPrint, bool denary) {
+void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
     int bytesPerPixel = dib.bitsPerPixel >> 3;
     int rowWidth = (bytesPerPixel * dib.width + 3) & ~3;
     uint8_t buffer[rowWidth];
@@ -56,21 +62,24 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, bool noPrint, bool
     int x = 0;
     int y = dib.height - 1;
     int endAddress = bufferSize * dib.height + header.offset;
+    int pixel;
     uint8_t r;
     uint8_t g;
     uint8_t b;
 
     printf("========\n");
     printf("Buffer size: %lu\n", bufferSize);
+    if (bufferSize == dib.width * 3) printf("Buffer size and width match, no padding.\n");
+    else printf("Buffer size and width do not match, there will be padding. View using `-p` flag.\n");
     printf("End address: %u\n", endAddress);
 
     fseek(file, endAddress - bufferSize,  SEEK_SET);
 
      while (y != 0) {
         fread(&buffer, bufferSize, 1, file);
+        pixel = 0;
 
-        for (int pixel = 0; pixel < dib.width; pixel++) {
-
+        for (; pixel < dib.width; pixel++) {
             if (x >= dib.width) {
                 x = 0;
                 y--;
@@ -82,15 +91,29 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, bool noPrint, bool
             g = buffer[pixel*3+1];
             r = buffer[pixel*3+2];
 
-            if (noPrint) {
-                if (denary) printf("(%u, %u, %u) ", r, g, b);
-                else printf("#%x%x%x ", r, g, b);
+            if (opts.printHex) {
+                printf("#%x%x%x ", r, g, b);
+            } else if (opts.printDenary) {
+                printf("(%u, %u, %u) ", r, g, b);
             } else {
                 printf("\033[48;2;%u;%u;%um  ", r, g, b);
             }
 
             x++;
             pixelCount++;
+        }
+
+        // Multiply by 3 to match pixel reading from previous loop.
+        // Since pixel counts in pixels (made of 3 bytes) and not bytes.
+        // Pixel unit -> byte unit.
+        long int currentIndex = pixel * 3;
+
+        if (opts.includePadding && currentIndex < bufferSize) {
+            printf("\033[0m | ");
+            for (int i = currentIndex; i < bufferSize; i++) {
+                if (opts.printHex) printf("%x ", buffer[i]);
+                else printf("%u ", buffer[i]);
+            }
         }
 
         fseek(file, -2 * bufferSize, SEEK_CUR);
@@ -101,20 +124,21 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, bool noPrint, bool
 }
 
 int main(int argc, char* argv[]) {
+    options opts = {0};
     char* fileName = "demo.bmp";
-    bool noPrint = false;
-    bool denary = false;
     FILE *file;
 
     for (int i = 1; i < argc; i++) {
         printf("%u: %s\n", i, argv[i]);
-        if (strcmp(argv[i], "-n") == 0) {
-            noPrint = true;
+        if (strcmp(argv[i], "-h") == 0) {
+            opts.printHex = true;
             printf("Printing RGB values instead of TrueColor pixel.\n");
         } else if (strcmp(argv[i], "-d") == 0) {
-            noPrint = true;
-            denary = true;
+            opts.printDenary = true;
             printf("Printing denary RGB values instead TrueColor pixel.\n");
+        } else if (strcmp(argv[i], "-p") == 0) {
+            opts.includePadding = true;
+            printf("Including padding as well.\n");
         } else {
             fileName = argv[i];
         }
@@ -175,7 +199,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    readPixels(file, header, dib, noPrint, denary);
+    readPixels(file, header, dib, opts);
 
     fclose(file);
 
