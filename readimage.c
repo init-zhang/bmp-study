@@ -1,14 +1,19 @@
 /**
  * Read the data of a BMP image file
+ *
+ * Usage:
+ * readimage [flags] [file]
+ *
+ * Flags:
+ * -n  Print the RGB value rather than TrueColor pixel.
+ * -d  Print denary values of RGB values instead of hex. Assumes `-n`.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-// We can get away with loading the entire image in memory as it only uses
-// 96x96x3 = 27648 bytes. But for larger images, we should read as a stream.
-#define PIXEL_BUFFER_SIZE 9216
+#include <stdbool.h>
+#include <string.h>
 
 #pragma pack(push, 1)
 typedef struct {
@@ -42,7 +47,7 @@ int checkFile(FILE *file) {
     }
 }
 
-void readPixels(FILE *file, fileHeader header, dibHeader dib) {
+void readPixels(FILE *file, fileHeader header, dibHeader dib, bool noPrint, bool denary) {
     int bytesPerPixel = dib.bitsPerPixel >> 3;
     int rowWidth = (bytesPerPixel * dib.width + 3) & ~3;
     uint8_t buffer[rowWidth];
@@ -76,7 +81,13 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
             b = buffer[pixel*3];
             g = buffer[pixel*3+1];
             r = buffer[pixel*3+2];
-            printf("\033[48;2;%u;%u;%um  ", r, g, b);
+
+            if (noPrint) {
+                if (denary) printf("(%u, %u, %u) ", r, g, b);
+                else printf("#%x%x%x ", r, g, b);
+            } else {
+                printf("\033[48;2;%u;%u;%um  ", r, g, b);
+            }
 
             x++;
             pixelCount++;
@@ -91,13 +102,26 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib) {
 
 int main(int argc, char* argv[]) {
     char* fileName = "demo.bmp";
+    bool noPrint = false;
+    bool denary = false;
     FILE *file;
 
-    switch (argc) {
-        case 2:
-            fileName = argv[1];
-            break;
+    for (int i = 1; i < argc; i++) {
+        printf("%u: %s\n", i, argv[i]);
+        if (strcmp(argv[i], "-n") == 0) {
+            noPrint = true;
+            printf("Printing RGB values instead of TrueColor pixel.\n");
+        } else if (strcmp(argv[i], "-d") == 0) {
+            noPrint = true;
+            denary = true;
+            printf("Printing denary RGB values instead TrueColor pixel.\n");
+        } else {
+            fileName = argv[i];
+        }
     }
+
+    printf("Opening file: %s\n", fileName);
+    printf("========\n");
 
     file = fopen(fileName, "rb");
 
@@ -142,14 +166,16 @@ int main(int argc, char* argv[]) {
         char ans;
 
         printf("Only 24 bits per pixel images are supported.\n");
-        printf("Continue? [y/N]\n");
-        scanf("> %c", &ans);
+        printf("Continue? [y/N]\n> ");
+        scanf("%c", &ans);
 
-        if (ans != 'y' && ans != 'Y')
+        if (ans != 'y' && ans != 'Y') {
+            printf("Exiting.\n");
             return 1;
+        }
     }
 
-    readPixels(file, header, dib);
+    readPixels(file, header, dib, noPrint, denary);
 
     fclose(file);
 
