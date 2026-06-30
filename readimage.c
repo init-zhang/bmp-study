@@ -8,6 +8,9 @@
  * -h  Print the RGB value rather than TrueColor pixel.
  * -d  Print the RGB denary values rather than TrueColor pixel.
  * -p  Print width padding.
+ *
+ * Flags must be separated by a space:
+ * `./readimage.o -h -p` prints the hex value with padding.
  */
 
 #include <stdio.h>
@@ -21,6 +24,9 @@ typedef struct {
     bool printDenary;
     bool includePadding;
 } options;
+
+// Prevent padding between size-sensitive structures. Padding can break the
+// size of members and result in incorrect values.
 
 #pragma pack(push, 1)
 typedef struct {
@@ -76,6 +82,9 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
 
     fseek(file, endAddress - bufferSize,  SEEK_SET);
 
+    // Read file from bottom row up because of how images are stored. The top
+    // row of the image as the last line of pixels within BMP images.
+
      while (y != 0) {
         fread(&buffer, bufferSize, 1, file);
         pixel = 0;
@@ -97,6 +106,7 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
             } else if (opts.printDenary) {
                 printf("(%u, %u, %u) ", r, g, b);
             } else {
+                // Use TrueColor escape code to display pixels.
                 printf("\033[48;2;%u;%u;%um  ", r, g, b);
             }
 
@@ -117,6 +127,8 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
             }
         }
 
+        // -1 jumps back to the start of the current row. Another -1 jumps back
+        // to the start of the row above.
         fseek(file, -2 * bufferSize, SEEK_CUR);
      }
 
