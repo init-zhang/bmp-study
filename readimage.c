@@ -62,7 +62,7 @@ int checkFile(FILE *file) {
 
 void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
     int bytesPerPixel = dib.bitsPerPixel >> 3;
-    int rowWidth = (bytesPerPixel * dib.width + 3) & ~3;
+    int rowWidth = (bytesPerPixel * dib.width + bytesPerPixel) & ~bytesPerPixel;
     uint8_t buffer[rowWidth];
     long int bufferSize = sizeof(buffer);
     int pixelCount = 0;
@@ -76,7 +76,7 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
 
     printf("========\n");
     printf("Buffer size: %lu\n", bufferSize);
-    if (bufferSize == dib.width * 3) printf("Buffer size and width match, no padding.\n");
+    if (bufferSize == dib.width * bytesPerPixel) printf("Buffer size and width match, no padding.\n");
     else printf("Buffer size and width do not match, there will be padding. View using `-p` flag.\n");
     printf("End address: %u\n", endAddress);
 
@@ -97,9 +97,9 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
             }
 
             // Read color values in reverse order due to little-endian.
-            b = buffer[pixel*3];
-            g = buffer[pixel*3+1];
-            r = buffer[pixel*3+2];
+            b = buffer[pixel*bytesPerPixel];
+            g = buffer[pixel*bytesPerPixel+1];
+            r = buffer[pixel*bytesPerPixel+2];
 
             if (opts.printHex) {
                 printf("#%x%x%x ", r, g, b);
@@ -114,10 +114,10 @@ void readPixels(FILE *file, fileHeader header, dibHeader dib, options opts) {
             pixelCount++;
         }
 
-        // Multiply by 3 to match pixel reading from previous loop.
-        // Since pixel counts in pixels (made of 3 bytes) and not bytes.
-        // Pixel unit -> byte unit.
-        long int currentIndex = pixel * 3;
+        // Multiply last pixel by bytesPerPixel to get the first byte index of
+        // padding (if it exists).
+        // Last pixel index -> first byte index of padding.
+        long int currentIndex = pixel * bytesPerPixel;
 
         if (opts.includePadding && currentIndex < bufferSize) {
             printf("\033[0m | ");
@@ -197,19 +197,6 @@ int main(int argc, char* argv[]) {
     if (dib.colorPlanes != 1) {
         printf("Color planes must be 1.\n");
         return 1;
-    }
-
-    if (dib.bitsPerPixel != 24) {
-        char ans;
-
-        printf("Only 24 bits per pixel images are supported.\n");
-        printf("Continue? [y/N]\n> ");
-        scanf("%c", &ans);
-
-        if (ans != 'y' && ans != 'Y') {
-            printf("Exiting.\n");
-            return 1;
-        }
     }
 
     readPixels(file, header, dib, opts);
